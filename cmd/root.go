@@ -49,13 +49,13 @@ func diffDance(cmd *cobra.Command, args []string) {
 
 	file1, err := os.Open(file1Path)
 	if err != nil {
-		fmt.Printf("Error opening file: %v", err)
+		fmt.Printf("Error opening file: %v\n", err)
 		os.Exit(1)
 	}
 	defer file1.Close()
 	file2, err := os.Open(file2Path)
 	if err != nil {
-		fmt.Printf("Error opening file: %v", err)
+		fmt.Printf("Error opening file: %v\n", err)
 		os.Exit(1)
 	}
 	defer file2.Close()
@@ -63,10 +63,12 @@ func diffDance(cmd *cobra.Command, args []string) {
 	file1Lines, err := utils.ReadLines(file1)
 	if err != nil {
 		fmt.Printf("Error reading lines from file 1: %v", err)
+		os.Exit(1)
 	}
 	file2Lines, err := utils.ReadLines(file2)
 	if err != nil {
 		fmt.Printf("Error reading lines from file 2: %v", err)
+		os.Exit(1)
 	}
 	file1.Seek(0, 0)
 	file2.Seek(0, 0)
@@ -80,7 +82,7 @@ func diffDance(cmd *cobra.Command, args []string) {
 	case heatmap:
 		display.HeatMap(diffs, file1Lines, file2Lines)
 	case wordcloud:
-		fmt.Println("Wordcloud visualization (not implemented yet)")
+		display.WordCloud(diffs)
 	case structural:
 		fmt.Println("TBD")
 	case interactive:

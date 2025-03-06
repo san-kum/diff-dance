@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/san-kum/diff-dance/pkg/diff"
 	"github.com/san-kum/diff-dance/pkg/display"
@@ -60,34 +61,59 @@ func diffDance(cmd *cobra.Command, args []string) {
 	}
 	defer file2.Close()
 
-	file1Lines, err := utils.ReadLines(file1)
-	if err != nil {
-		fmt.Printf("Error reading lines from file 1: %v", err)
-		os.Exit(1)
-	}
-	file2Lines, err := utils.ReadLines(file2)
-	if err != nil {
-		fmt.Printf("Error reading lines from file 2: %v", err)
-		os.Exit(1)
-	}
-	file1.Seek(0, 0)
-	file2.Seek(0, 0)
-
-	diffs, err := diff.Files(file1, file2)
-	if err != nil {
-		fmt.Printf("Error diffing files: %v\n", err)
-		os.Exit(1)
-	}
 	switch {
 	case heatmap:
+		file1Lines, err := utils.ReadLines(file1)
+		if err != nil {
+			fmt.Printf("Error reading lines from file 1: %v", err)
+			os.Exit(1)
+		}
+		file2Lines, err := utils.ReadLines(file2)
+		if err != nil {
+			fmt.Printf("Error reading lines from file 2: %v", err)
+			os.Exit(1)
+		}
+		file1.Seek(0, 0)
+		file2.Seek(0, 0)
+
+		diffs, err := diff.Files(file1, file2)
+		if err != nil {
+			fmt.Printf("Error diffing files: %v\n", err)
+			os.Exit(1)
+		}
 		display.HeatMap(diffs, file1Lines, file2Lines)
 	case wordcloud:
+		file1.Seek(0, 0)
+		file2.Seek(0, 0)
+		diffs, err := diff.Files(file1, file2)
+		if err != nil {
+			fmt.Printf("Error diffing files: %s", err)
+			os.Exit(1)
+		}
 		display.WordCloud(diffs)
 	case structural:
-		fmt.Println("TBD")
+		if filepath.Ext(file1Path) == ".go" && filepath.Ext(file2Path) == ".go" {
+			file1.Seek(0, 0)
+			file2.Seek(0, 0)
+			structuralDiffs, err := diff.StructuralDiffs(file1, file2)
+			if err != nil {
+				fmt.Printf("Error calculating structural diff: %v\n", err)
+				os.Exit(1)
+			}
+			display.Structural(structuralDiffs)
+		} else {
+			fmt.Println("Structural diff is only supported Go files (.go).")
+		}
 	case interactive:
 		fmt.Println("TBD")
 	default:
+		file1.Seek(0, 0)
+		file2.Seek(0, 0)
+		diffs, err := diff.Files(file1, file2)
+		if err != nil {
+			fmt.Printf("Error diffing files: %s", err)
+			os.Exit(1)
+		}
 		display.Terminal(diffs)
 	}
 	if format != "terminal" {

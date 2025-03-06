@@ -6,6 +6,7 @@ import (
 
 	"github.com/san-kum/diff-dance/pkg/diff"
 	"github.com/san-kum/diff-dance/pkg/display"
+	"github.com/san-kum/diff-dance/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -59,6 +60,17 @@ func diffDance(cmd *cobra.Command, args []string) {
 	}
 	defer file2.Close()
 
+	file1Lines, err := utils.ReadLines(file1)
+	if err != nil {
+		fmt.Printf("Error reading lines from file 1: %v", err)
+	}
+	file2Lines, err := utils.ReadLines(file2)
+	if err != nil {
+		fmt.Printf("Error reading lines from file 2: %v", err)
+	}
+	file1.Seek(0, 0)
+	file2.Seek(0, 0)
+
 	diffs, err := diff.Files(file1, file2)
 	if err != nil {
 		fmt.Printf("Error diffing files: %v\n", err)
@@ -66,7 +78,7 @@ func diffDance(cmd *cobra.Command, args []string) {
 	}
 	switch {
 	case heatmap:
-		fmt.Println("Heatmap visualization (not implemented yet)")
+		display.HeatMap(diffs, file1Lines, file2Lines)
 	case wordcloud:
 		fmt.Println("Wordcloud visualization (not implemented yet)")
 	case structural:

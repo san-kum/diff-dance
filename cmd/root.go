@@ -48,21 +48,20 @@ func diffDance(cmd *cobra.Command, args []string) {
 	interactive, _ := cmd.Flags().GetBool("interactive")
 	format, _ := cmd.Flags().GetString("format")
 
-	file1, err := os.Open(file1Path)
-	if err != nil {
-		fmt.Printf("Error opening file: %v\n", err)
-		os.Exit(1)
-	}
-	defer file1.Close()
-	file2, err := os.Open(file2Path)
-	if err != nil {
-		fmt.Printf("Error opening file: %v\n", err)
-		os.Exit(1)
-	}
-	defer file2.Close()
-
 	switch {
 	case heatmap:
+		file1, err := os.Open(file1Path)
+		if err != nil {
+			fmt.Printf("Error opening file: %v\n", err)
+			os.Exit(1)
+		}
+		defer file1.Close()
+		file2, err := os.Open(file2Path)
+		if err != nil {
+			fmt.Printf("Error opening file: %v\n", err)
+			os.Exit(1)
+		}
+		defer file2.Close()
 		file1Lines, err := utils.ReadLines(file1)
 		if err != nil {
 			fmt.Printf("Error reading lines from file 1: %v", err)
@@ -83,8 +82,21 @@ func diffDance(cmd *cobra.Command, args []string) {
 		}
 		display.HeatMap(diffs, file1Lines, file2Lines)
 	case wordcloud:
+		file1, err := os.Open(file1Path)
+		if err != nil {
+			fmt.Printf("Error opening file: %v\n", err)
+			os.Exit(1)
+		}
+		defer file1.Close()
+		file2, err := os.Open(file2Path)
+		if err != nil {
+			fmt.Printf("Error opening file: %v\n", err)
+			os.Exit(1)
+		}
+		defer file2.Close()
 		file1.Seek(0, 0)
 		file2.Seek(0, 0)
+
 		diffs, err := diff.Files(file1, file2)
 		if err != nil {
 			fmt.Printf("Error diffing files: %s", err)
@@ -92,6 +104,20 @@ func diffDance(cmd *cobra.Command, args []string) {
 		}
 		display.WordCloud(diffs)
 	case structural:
+		file1, err := os.Open(file1Path)
+		if err != nil {
+			fmt.Printf("Error opening file: %v\n", err)
+			os.Exit(1)
+		}
+		defer file1.Close()
+		file2, err := os.Open(file2Path)
+		if err != nil {
+			fmt.Printf("Error opening file: %v\n", err)
+			os.Exit(1)
+		}
+		defer file2.Close()
+		file1.Seek(0, 0)
+		file2.Seek(0, 0)
 		if filepath.Ext(file1Path) == ".go" && filepath.Ext(file2Path) == ".go" {
 			file1.Seek(0, 0)
 			file2.Seek(0, 0)
@@ -105,8 +131,22 @@ func diffDance(cmd *cobra.Command, args []string) {
 			fmt.Println("Structural diff is only supported Go files (.go).")
 		}
 	case interactive:
-		fmt.Println("TBD")
+		display.Interactive(file1Path, file2Path)
 	default:
+		file1, err := os.Open(file1Path)
+		if err != nil {
+			fmt.Printf("Error opening file: %v\n", err)
+			os.Exit(1)
+		}
+		defer file1.Close()
+		file2, err := os.Open(file2Path)
+		if err != nil {
+			fmt.Printf("Error opening file: %v\n", err)
+			os.Exit(1)
+		}
+		defer file2.Close()
+		file1.Seek(0, 0)
+		file2.Seek(0, 0)
 		file1.Seek(0, 0)
 		file2.Seek(0, 0)
 		diffs, err := diff.Files(file1, file2)

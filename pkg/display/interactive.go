@@ -68,16 +68,14 @@ func Interactive(file1Path, file2Path string) {
 		app.SetRoot(modal, false)
 	}
 
-	// performSearch now returns a boolean indicating if a match was found.
 	performSearch := func(text string, next bool) bool {
 		if text == "" {
-			return false // Nothing to search
+			return false
 		}
 
-		// Compile regex only if the search text has changed.
 		if text != searchText {
 			var err error
-			searchRegex, err = regexp.Compile(text)
+			searchRegex, err = regexp.Compile(`\b` + regexp.QuoteMeta(text) + `\b`)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Invalid regular expression: %v\n", err)
 				return false
@@ -87,28 +85,29 @@ func Interactive(file1Path, file2Path string) {
 
 		start := currentHighlight
 		if next {
-			start++ // Start searching *after* the current highlight
+			start++
 		}
 
-		// Search forward from the starting position.
+		// Forward search
 		for i := start; i < len(diffs); i++ {
 			if searchRegex.MatchString(diffs[i].Line) {
 				currentHighlight = i
 				textView.Highlight(strconv.Itoa(currentHighlight)).ScrollToHighlight()
-				return true // Match found
+				textView.SetText(buildInteractiveDiffText(diffs, searchRegex))
+				return true
 			}
 		}
 
-		// If not found, wrap around to the beginning.
 		for i := 0; i < start; i++ {
 			if searchRegex.MatchString(diffs[i].Line) {
 				currentHighlight = i
 				textView.Highlight(strconv.Itoa(currentHighlight)).ScrollToHighlight()
-				return true // Match found
+				textView.SetText(buildInteractiveDiffText(diffs, searchRegex))
+				return true
 			}
 		}
-
-		return false // No match found
+		textView.SetText(buildInteractiveDiffText(diffs, nil))
+		return false
 	}
 
 	setNextHighlight := func() {
@@ -255,7 +254,7 @@ func Interactive(file1Path, file2Path string) {
 		os.Exit(1)
 	}
 
-	diffText := buildInteractiveDiffText(diffs)
+	diffText := buildInteractiveDiffText(diffs, nil)
 	textView.SetText(diffText)
 	textView.Highlight(strconv.Itoa(currentHighlight)).ScrollToHighlight()
 
@@ -268,19 +267,27 @@ func Interactive(file1Path, file2Path string) {
 	}
 }
 
-// buildInteractiveDiffText builds the diff text with color tags and region markers.
-func buildInteractiveDiffText(diffs []diff.Diff) string {
+func buildInteractiveDiffText(diffs []diff.Diff, searchRegex *regexp.Regexp) string {
 	var builder strings.Builder
 	for i, d := range diffs {
 		regionTag := strconv.Itoa(i)
+		var line string
 		switch d.Type {
 		case "add":
-			builder.WriteString(fmt.Sprintf(`["%s"][green]+ %s[white][""]`, regionTag, d.Line))
+			line = fmt.Sprintf(`[green]+ %s[white]`, d.Line)
 		case "remove":
-			builder.WriteString(fmt.Sprintf(`["%s"][red]- %s[white][""]`, regionTag, d.Line))
+			line = fmt.Sprintf(`[red]- %s[white]`, d.Line)
 		case "same":
-			builder.WriteString(fmt.Sprintf(`["%s"]  %s[""]`, regionTag, d.Line))
+			line = fmt.Sprintf(`  %s`, d.Line)
 		}
+
+		if searchRegex != nil {
+			line = searchRegex.ReplaceAllStringFunc(line, func(match string) string {
+				return fmt.Sprintf("[yellow::b]%s[white]", match) // Yellow background, bold
+			})
+		}
+
+		builder.WriteString(fmt.Sprintf(`["%s"]%s[""]`, regionTag, line))
 		builder.WriteString("\n")
 	}
 	return builder.String()

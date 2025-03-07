@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 
 	"github.com/san-kum/diff-dance/pkg/diff"
 	"github.com/san-kum/diff-dance/pkg/display"
@@ -102,7 +103,7 @@ func diffDance(cmd *cobra.Command, args []string) {
 			fmt.Printf("Error diffing files: %s", err)
 			os.Exit(1)
 		}
-		display.WordCloud(diffs)
+		display.WordCloud(diffs, os.Stdout)
 	case structural:
 		file1, err := os.Open(file1Path)
 		if err != nil {
@@ -126,7 +127,7 @@ func diffDance(cmd *cobra.Command, args []string) {
 				fmt.Printf("Error calculating structural diff: %v\n", err)
 				os.Exit(1)
 			}
-			display.Structural(structuralDiffs)
+			display.Structural(structuralDiffs, os.Stdout)
 		} else {
 			fmt.Println("Structural diff is only supported Go files (.go).")
 		}
@@ -154,7 +155,27 @@ func diffDance(cmd *cobra.Command, args []string) {
 			fmt.Printf("Error diffing files: %s", err)
 			os.Exit(1)
 		}
-		display.Terminal(diffs)
+		if format == "html" {
+			searchTerm := os.Getenv("DIFF_DANCE_SEARCH")
+			var searchRegex *regexp.Regexp
+			if searchTerm != "" {
+				searchRegex, err = regexp.Compile(`\b` + regexp.QuoteMeta(searchTerm) + `\b`)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Invalid search term: %v\n", err)
+				}
+			}
+			if searchRegex != nil {
+				err = display.HTMLWithHighlight(diffs, os.Stdout, searchRegex)
+			} else {
+				err = display.HTML(diffs, os.Stdout)
+			}
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error generating HTML: %v\n", err)
+				os.Exit(1)
+			}
+		} else {
+			display.Terminal(diffs, os.Stdout)
+		}
 	}
 	if format != "terminal" {
 		fmt.Println("HTML/Image output (not implemented)")

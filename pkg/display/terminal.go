@@ -2,22 +2,23 @@ package display
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/san-kum/diff-dance/pkg/diff"
 )
 
-func Terminal(diffs []diff.Diff) {
+func Terminal(diffs []diff.Diff, w io.Writer) {
 	for _, d := range diffs {
 		switch d.Type {
 		case "add":
-			fmt.Println(green("+ " + d.Line))
+			fmt.Fprintln(w, green("+ "+d.Line))
 		case "remove":
-			fmt.Println(red("- " + d.Line))
+			fmt.Fprintln(w, red("- "+d.Line))
 		case "change":
-			fmt.Println(yellow("~ " + d.Line))
-			fmt.Println(" " + d.Line)
+			fmt.Fprintln(w, yellow("~ "+d.Line))
+			fmt.Fprintln(w, " "+d.Line)
 		default:
-			fmt.Println(d.Line)
+			fmt.Fprintln(w, d.Line)
 		}
 	}
 }

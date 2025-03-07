@@ -2,13 +2,14 @@ package display
 
 import (
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/san-kum/diff-dance/pkg/diff"
 	"github.com/san-kum/diff-dance/pkg/utils"
 )
 
-func HeatMap(diffs []diff.Diff, file1Lines, file2Lines []string) {
+func Heatmap(diffs []diff.Diff, file1Lines, file2Lines []string, w io.Writer) {
 	maxLength := utils.Max(len(file1Lines), len(file2Lines))
 
 	heat := make([]int, maxLength)
@@ -22,6 +23,7 @@ func HeatMap(diffs []diff.Diff, file1Lines, file2Lines []string) {
 					break
 				}
 			}
+
 		case "remove":
 			for i, line := range file1Lines {
 				if line == d.Line {
@@ -42,11 +44,12 @@ func HeatMap(diffs []diff.Diff, file1Lines, file2Lines []string) {
 		if i < len(file2Lines) {
 			line2 = file2Lines[i]
 		}
+
 		if strings.Contains(line1, "\t") {
-			line1 = strings.ReplaceAll(line1, "\t", "   ")
+			line1 = strings.ReplaceAll(line1, "\t", "    ")
 		}
 		if strings.Contains(line2, "\t") {
-			line2 = strings.ReplaceAll(line2, "\t", "   ")
+			line2 = strings.ReplaceAll(line2, "\t", "    ")
 		}
 
 		displayLine := line1
@@ -54,23 +57,23 @@ func HeatMap(diffs []diff.Diff, file1Lines, file2Lines []string) {
 			displayLine = line2
 		}
 
-		fmt.Printf("%s%s\033[0m\n", heatColor, displayLine)
+		fmt.Fprintf(w, "%s%s\033[0m\n", heatColor, displayLine)
 	}
 }
 
 func heatColor(heat int) string {
 	switch {
 	case heat == 0:
-		return "\033[48;5;232m"
+		return "\033[48;5;232m" // Darkest gray for no changes
 	case heat == 1:
-		return "\033[48;5;235m"
+		return "\033[48;5;235m" // Slightly lighter gray
 	case heat == 2:
-		return "\033[48;5;238m"
+		return "\033[48;5;238m" // Lighter gray
 	case heat == 3:
-		return "\033[48;5;241m"
+		return "\033[48;5;241m" // Even lighter
 	case heat > 3:
-		return "\033[48;5;196m"
+		return "\033[48;5;196m" // Red for high change density
 	default:
-		return ""
+		return "" // Should not happen, but safe default
 	}
 }

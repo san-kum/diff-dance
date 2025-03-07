@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>diff-dance - Directory Diff</title>
+<style>
+body { font-family: monospace; }
+.add { color: green; }
+.remove { color: red; }
+.change { color: orange; }
+.same { color: black; }
+.binary { color: magenta; }
+.add_dir { color: blue; }
+.remove_dir { color: blue; }
+.same_dir { color: gray; }
+</style>
+</head>
+<body>
+<pre>
+<span class="remove_dir">- Directory removed: diff</span>
+<span class="remove_dir">- Directory removed: display</span>
+<span class="remove_dir">- Directory removed: utils</span>
+<span class="add">+ root.go</span>
+<span class="remove">- diff/diff.go</span>
+<span class="remove">- diff/diff_test.go</span>
+<span class="remove">- diff/dir.go</span>
+<span class="remove">- diff/structural.go</span>
+<span class="remove">- diff/words.go</span>
+<span class="remove">- display/heatmap.go</span>
+<span class="remove">- display/html.go</span>
+<span class="remove">- display/interactive.go</span>
+<span class="remove">- display/structural.go</span>
+<span class="remove">- display/terminal.go</span>
+<span class="remove">- display/wordcloud.go</span>
+<span class="remove">- utils/file.go</span>
+
+</pre>
+</body>
+</html>
